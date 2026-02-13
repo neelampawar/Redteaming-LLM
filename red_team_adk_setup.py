@@ -21,7 +21,7 @@ from google import genai
 from pydantic import BaseModel
 
 # Inject provided API keys 
-os.environ["GEMINI_API_KEY"] = "AIzaSyAeiiWi76kQmbiepBikAAHcDpBwLvTTZNA"
+os.environ["GEMINI_API_KEY"] = "gemini -api key"
 os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "0"
 
