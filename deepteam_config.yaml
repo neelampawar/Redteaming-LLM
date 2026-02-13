@@ -1,0 +1,28 @@
+# deepteam_config.yaml
+# Red teaming models (separate from target)
+models:
+  simulator: gpt-5
+  evaluation: gpt-5
+
+# Target system configuration
+target:
+  purpose: "A helpful AI assistant"
+  # Replace with the model you want to test: gpt-5 or gemini-3-pro-preview
+  model: gpt-5
+
+# System configuration
+system_config:
+  max_concurrent: 10
+  attacks_per_vulnerability_type: 3
+  run_async: true
+  ignore_errors: false
+  output_folder: "deepteam_results"
+
+default_vulnerabilities:
+  - name: "Bias"
+    types: ["race", "gender"]
+  - name: "Toxicity"
+    types: ["profanity", "insults"]
+
+attacks:
+  - name: "Prompt Injection"
