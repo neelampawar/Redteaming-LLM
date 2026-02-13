@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+.venv/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.deepeval/
+.deepteam/
+*report*/
+*.json/
+test_adk_callback.py

@@ -1,21 +1,24 @@
 # Red Teaming Large Language Models
 
-This repository contains scripts and configurations to run a comprehensive red teaming assessment against foundational LLMs (OpenAI, Google Gemini, and Anthropic). The red teaming process is powered by [DeepTeam](https://github.com/confident-ai/deepteam), an LLM red teaming framework.
+This repository contains scripts and configurations to run a comprehensive red teaming assessment against foundational LLMs (OpenAI, Google Gemini, Anthropic) as well as integrated Google ADK Agents. The red teaming process is powered by [DeepTeam](https://github.com/confident-ai/deepteam), an LLM red teaming framework.
 
 ## Overview
 
-The setup allows you to evaluate your chosen LLM against up to **23 distinct vulnerabilities** (e.g., Bias, Toxicity, PII Leakage, SQL Injection, Intellectual Property theft) using adversarial attack methods such as Prompt Injection.
+The setup allows you to evaluate your chosen LLM against up to **23 distinct vulnerabilities** (e.g., Bias, Toxicity, Goal Theft, SQL Injection) using adversarial attack methods such as Prompt Injection.
+
+To facilitate testing without requiring an OpenAI setup, **both evaluators** have been customized to execute prompts using `gemini-3-pro-preview`. 
 
 ## Files Provided
 
-*   **`red_team_setup.py`**: A complete Python script that wraps API calls to your chosen model provider and runs the DeepTeam evaluation suite automatically.
-*   **`deepteam_config.yaml`**: A pre-configured YAML file you can use if you prefer using the DeepTeam CLI directly.
-*   **`Redteam_risk_assessment_report.json`**: An example result report generated after running the script against a model.
+*   **`red_team_setup.py`**: A pure python script that tests standard Model Providers directly (OpenAI/Anthropic/Gemini SDKs).
+*   **`red_team_adk_setup.py`**: A specialized Python script that tests a complete Google ADK Agent (`customer_service_agent`). It yields context-rich results by interacting with the `Runner` API.
+*   **`deepteam_config.yaml`**: A pre-configured YAML file you can use if you prefer using the DeepTeam CLI.
 
 ## Prerequisites
 
 1.  Python 3.9+
-2.  An API Key for the model provider you want to test (OpenAI, Gemini, or Anthropic).
+2.  A [Google Gemini API Key](https://aistudio.google.com/app/apikey) to build the DeepTeam Evaluator model.
+3.  Target Model Keys: Anthropic or OpenAI API Keys if testing those via `red_team_setup.py`.
 
 ## Quickstart Guide
 
@@ -35,44 +38,35 @@ source .venv/bin/activate
 Install the required dependencies:
 
 ```bash
-pip install -U deepteam google-genai openai anthropic
+pip install -U deepteam google-genai openai anthropic google-adk
 ```
 
 ### 2. Configuration
 
-Open `red_team_setup.py`.
-
-1.  **Set your API Keys**: Locate lines 37-39 and replace the placeholder API keys with your actual, active API keys.
+1.  **Set your API Keys**: Locate the top configuration block within either of the Python scripts and replace the placeholder API keys with your actual keys.
     ```python
-    os.environ["OPENAI_API_KEY"] = "sk-proj-your-openai-api-key"
     os.environ["GEMINI_API_KEY"] = "AIza-your-gemini-api-key"
     os.environ["ANTHROPIC_API_KEY"] = "sk-ant-your-anthropic-api-key"
     ```
-2.  **Choose your Target**: Locate line 42 and set `TARGET_PROVIDER` to the model you wish to evaluate (`"openai"`, `"gemini"`, or `"anthropic"`).
+2.  **Target Provider (`red_team_setup.py` only)**: If testing raw models, set `TARGET_PROVIDER` inside `red_team_setup.py` to your desired model (`"openai"`, `"gemini"`, or `"anthropic"`).
 
-### 3. Run the Assessment
+### 3. Run the Assessments
 
-Execute the script:
+You can execute either script independently:
 
+**To test standard LLM APIs:**
 ```bash
 python red_team_setup.py
 ```
 
-*Note: Generating adversarial attacks and evaluating the responses for 23 vulnerabilities requires significant compute time and will likely take several minutes to complete.*
+**To test an ADK Agent:**
+```bash
+# Make sure your ADK app is available in PYTHONPATH
+PYTHONPATH="/path/to/adk-app:$PYTHONPATH" python red_team_adk_setup.py
+```
+
+*Note: Generating adversarial attacks takes significant compute time based on the number of vulnerabilities tested.*
 
 ### 4. View Results
 
-Once the red teaming run finishes, the script will automatically save a detailed report of the vulnerabilities and passed/failed results locally as a JSON file (`deepteam_risk_assessment_report.json`). 
-
-## Using the CLI (Alternative)
-
-Instead of the Python script, you can use the deepteam CLI with the provided `deepteam_config.yaml`:
-
-```bash
-# Set your keys
-deepteam set-api-key "your-openai-api-key" # Assessor model
-deepteam set-gemini --google-api-key "your-gemini-api-key" # Target Model
-
-# Run tests
-deepteam run deepteam_config.yaml
-```
+Once the red teaming run finishes, the scripts will automatically save a detailed report of the vulnerabilities to files locally (`deepteam_risk_assessment_report.json` or `adk_deepteam_risk_assessment_report.json`).

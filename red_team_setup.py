@@ -27,6 +27,39 @@ from deepteam.vulnerabilities import (
     InsecureInterAgentCommunication,
 )
 from deepteam.attacks.single_turn import PromptInjection
+from deepeval.models import DeepEvalBaseLLM
+from pydantic import BaseModel
+from google import genai
+
+# Custom wrapper to allow DeepTeam to use Gemini as an evaluator instead of OpenAI
+class GeminiEvalModel(DeepEvalBaseLLM):
+    def __init__(self, model_name="gemini-3-pro-preview"):
+        self.model_name = model_name
+        self.client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+
+    def load_model(self):
+        return self.client
+
+    def generate(self, prompt: str, schema: BaseModel = None) -> BaseModel:
+        config = {"temperature": 0.0}
+        if schema is not None:
+             config["response_mime_type"] = "application/json"
+             config["response_schema"] = schema
+             
+        res = self.client.models.generate_content(
+            model=self.model_name,
+            contents=prompt,
+            config=config
+        )
+        if schema is not None:
+            return schema.model_validate_json(res.text)
+        return res.text
+
+    async def a_generate(self, prompt: str, schema: BaseModel = None) -> BaseModel:
+        return self.generate(prompt, schema)
+
+    def get_model_name(self):
+        return self.model_name
 
 # 1. Provide your chosen models here:
 OPENAI_MODEL = "gpt-5"
@@ -87,29 +120,7 @@ async def model_callback(input: str) -> str:
 if __name__ == "__main__":
     # Choose the vulnerabilities to test
     vulnerabilities_to_test = [
-        PIILeakage(),
-        Bias(types=["race", "gender"]), # Bias requires types
-        ChildProtection(),
-        Ethics(),
-        Fairness(),
-        Toxicity(types=["profanity", "insults"]), # Toxicity requires types
-        SQLInjection(),
-        SSRF(),
-        ToolMetadataPoisoning(),
-        IllegalActivity(),
-        PersonalSafety(),
-        UnexpectedCodeExecution(),
-        Misinformation(),
-        IntellectualProperty(),
-        Competition(),
-        GoalTheft(),
-        RecursiveHijacking(),
-        ExcessiveAgency(),
-        Robustness(),
-        IndirectInstruction(),
-        ToolOrchestrationAbuse(),
-        AgentIdentityAbuse(),
-        InsecureInterAgentCommunication()
+        GoalTheft(types=["escalating_probing", "cooperative_dialogue", "social_engineering"]),
     ]
     
     # Choose the attack method
@@ -118,11 +129,16 @@ if __name__ == "__main__":
     print(f"Starting Red Team assessment on {TARGET_PROVIDER} using {ANTHROPIC_MODEL if TARGET_PROVIDER == 'anthropic' else (GEMINI_MODEL if TARGET_PROVIDER == 'gemini' else OPENAI_MODEL)}...")
     print(f"Testing {len(vulnerabilities_to_test)} vulnerabilities...")
     
+    # Instantiate Custom Gemini Model for DeepTeam simulating and grading
+    gemini_evaluator = GeminiEvalModel(model_name="gemini-3-pro-preview")
+    
     # Run the assessment
     risk_assessment = red_team(
         model_callback=model_callback, 
         vulnerabilities=vulnerabilities_to_test, 
-        attacks=[prompt_injection]
+        attacks=[prompt_injection],
+        simulator_model=gemini_evaluator,
+        evaluation_model=gemini_evaluator
     )
     
     # Save the report locally

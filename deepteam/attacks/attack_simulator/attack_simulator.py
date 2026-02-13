@@ -55,6 +55,9 @@ class AttackSimulator:
         simulator_model: DeepEvalBaseLLM = None,
         metadata: Optional[dict] = None,
     ) -> List[RTTestCase]:
+        if simulator_model is not None:
+            self.simulator_model = simulator_model
+            
         # Simulate unenhanced attacks for each vulnerability
         test_cases: List[RTTestCase] = []
         num_vulnerability_types = sum(
@@ -115,6 +118,9 @@ class AttackSimulator:
         simulator_model: DeepEvalBaseLLM = None,
         attacks: Optional[List[BaseAttack]] = None,
     ) -> List[RTTestCase]:
+        if simulator_model is not None:
+            self.simulator_model = simulator_model
+            
         # Create a semaphore to control the number of concurrent tasks
         semaphore = asyncio.Semaphore(self.max_concurrent)
 
