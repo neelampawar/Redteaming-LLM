@@ -1,4 +1,4 @@
-# Red Teaming Large Language Models
+# Red Teaming Large Language Models and Agents(ADK)
 
 This repository contains scripts and configurations to run a comprehensive red teaming assessment against foundational LLMs (OpenAI, Google Gemini, Anthropic) as well as integrated Google ADK Agents. The red teaming process is powered by [DeepTeam](https://github.com/confident-ai/deepteam), an LLM red teaming framework.
 
