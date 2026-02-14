@@ -67,9 +67,9 @@ GEMINI_MODEL = "gemini-3-pro-preview"
 ANTHROPIC_MODEL = "claude-3-5-sonnet-20241022"
 
 # Set API keys using your environment context
-os.environ["OPENAI_API_KEY"] = "sk-proj-your-openai-api-key"
-os.environ["GEMINI_API_KEY"] = "AIza-your-gemini-api-key"
-os.environ["ANTHROPIC_API_KEY"] = "sk-ant-your-anthropic-api-key"
+os.environ["OPENAI_API_KEY"] = os.environ.get("OPENAI_API_KEY", "sk-proj-your-openai-api-key")
+os.environ["GEMINI_API_KEY"] = os.environ.get("GEMINI_API_KEY", "your-gemini-api-key")
+os.environ["ANTHROPIC_API_KEY"] = os.environ.get("ANTHROPIC_API_KEY", "sk-ant-your-anthropic-api-key")
 
 # Choose which model to test in this run ("openai", "gemini", or "anthropic")
 TARGET_PROVIDER = "anthropic" 

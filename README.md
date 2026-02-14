@@ -43,10 +43,11 @@ pip install -U deepteam google-genai openai anthropic google-adk
 
 ### 2. Configuration
 
-1.  **Set your API Keys**: Locate the top configuration block within either of the Python scripts and replace the placeholder API keys with your actual keys.
-    ```python
-    os.environ["GEMINI_API_KEY"] = "AIza-your-gemini-api-key"
-    os.environ["ANTHROPIC_API_KEY"] = "sk-ant-your-anthropic-api-key"
+1.  **Set your API Keys**: The evaluation scripts rely on environment variables to authenticate the simulation models. Export your actual keys in your terminal before running the tests.
+    ```bash
+    export GEMINI_API_KEY="your-gemini-api-key"
+    export OPENAI_API_KEY="sk-proj-your-openai-api-key"
+    export ANTHROPIC_API_KEY="sk-ant-your-anthropic-api-key"
     ```
 2.  **Target Provider (`red_team_setup.py` only)**: If testing raw models, set `TARGET_PROVIDER` inside `red_team_setup.py` to your desired model (`"openai"`, `"gemini"`, or `"anthropic"`).
 

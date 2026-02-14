@@ -13,19 +13,21 @@ from google.genai import types
 from customer_service.agent import root_agent
 
 from deepteam import red_team
-from deepteam.vulnerabilities import GoalTheft
-from deepteam.attacks.single_turn import PromptInjection
+from deepteam.vulnerabilities import GoalTheft, AgentIdentityAbuse
+from deepteam.attacks.single_turn import PromptInjection, Roleplay
 
 from deepeval.models import DeepEvalBaseLLM
 from google import genai
 from pydantic import BaseModel
 
-# Inject provided API keys 
-os.environ["GEMINI_API_KEY"] = "gemini -api key"
-os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"]
+# Inject provided API keys (Ensure they are exported in your terminal first)
+if "GEMINI_API_KEY" not in os.environ:
+    os.environ["GEMINI_API_KEY"] = "your-gemini-key"
+os.environ["GOOGLE_API_KEY"] = os.environ.get("GEMINI_API_KEY", "")
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "0"
 
-os.environ["OPENAI_API_KEY"] = "sk-proj-your-openai-api-key"
+if "OPENAI_API_KEY" not in os.environ:
+    os.environ["OPENAI_API_KEY"] = "sk-proj-your-openai-api-key"
 
 # Custom wrapper to allow DeepTeam to use Gemini as an evaluator instead of OpenAI
 class GeminiEvalModel(DeepEvalBaseLLM):
@@ -114,23 +116,25 @@ async def adk_model_callback(input: str) -> str:
 if __name__ == "__main__":
     # Ensure ONLY the GoalTheft vulnerability evaluates using the explicitly requested subtypes
     vulnerabilities_to_test = [
-        GoalTheft(types=["escalating_probing", "cooperative_dialogue", "social_engineering"])
+        GoalTheft(types=["escalating_probing", "cooperative_dialogue", "social_engineering"]),
+        AgentIdentityAbuse(types=["agent_impersonation", "cross_agent_trust_abuse"])
     ]
     
     prompt_injection = PromptInjection()
+    roleplay = Roleplay()
     
     # Instantiate Custom Gemini Model for DeepTeam simulating and grading
     gemini_evaluator = GeminiEvalModel(model_name="gemini-3-pro-preview")
 
     print(f"Starting Red Team assessment on the ADK Customer Service Agent...")
-    print(f"Testing {len(vulnerabilities_to_test)} vulnerabilities using Prompt Injection...")
+    print(f"Testing {len(vulnerabilities_to_test)} vulnerabilities using Prompt Injection and Roleplay...")
     
     # Run the assessment
     try:
         risk_assessment = red_team(
             model_callback=adk_model_callback, 
             vulnerabilities=vulnerabilities_to_test, 
-            attacks=[prompt_injection],
+            attacks=[prompt_injection, roleplay],
             simulator_model=gemini_evaluator,
             evaluation_model=gemini_evaluator,
             async_mode=True
